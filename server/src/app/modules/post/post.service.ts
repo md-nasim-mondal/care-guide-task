@@ -1,0 +1,60 @@
+import httpStatus from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
+import AppError from "../../errorHelpers/AppError";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IPost } from "./post.interface";
+import { Post } from "./post.model";
+
+const createPost = async (payload: IPost, user: JwtPayload) => {
+  const post = await Post.create({
+    ...payload,
+    author: user.userId,
+  });
+  return post;
+};
+
+const getAllPosts = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(
+    Post.find().populate("author", "name email"),
+    query,
+  );
+  const postsData = queryBuilder
+    .filter()
+    .search(["content"])
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    postsData.build(),
+    queryBuilder.getMeta(),
+  ]);
+  return { data, meta };
+};
+
+const deletePost = async (id: string, user: JwtPayload) => {
+  const post = await Post.findById(id);
+  if (!post) {
+    throw new AppError(httpStatus.NOT_FOUND, "Post not found");
+  }
+
+  if (
+    user.role !== "ADMIN" &&
+    user.role !== "SUPER_ADMIN" &&
+    post.author.toString() !== user.userId
+  ) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You can only delete your own posts",
+    );
+  }
+
+  await Post.findByIdAndDelete(id);
+  return null;
+};
+
+export const PostServices = {
+  createPost,
+  getAllPosts,
+  deletePost,
+};
