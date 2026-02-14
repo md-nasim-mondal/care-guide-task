@@ -1,15 +1,21 @@
 import { createBrowserRouter } from "react-router";
-import App from "../App";
 import HomePage from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import AdminDashboard from "../pages/AdminDashboard";
+import NoteDetails from "../pages/NoteDetails";
+import MainLayout from "../components/layout/MainLayout";
+import DashboardLayout from "../components/layout/DashboardLayout";
+import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRoute";
+import { ErrorPage } from "../pages/ErrorPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <MainLayout />,
+    errorElement: <ErrorPage />,
     children: [
       {
         index: true,
@@ -24,11 +30,42 @@ export const router = createBrowserRouter([
         element: <Register />,
       },
       {
-        path: "dashboard",
+        path: "notes/:id",
+        element: (
+          <ProtectedRoute>
+            <NoteDetails />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        index: true,
         element: <Dashboard />,
       },
+      // Other nested dashboard routes can act here
+    ],
+  },
+  {
+    path: "/admin",
+    element: (
+      <AdminRoute>
+        <DashboardLayout />
+      </AdminRoute>
+    ),
+    errorElement: <ErrorPage />,
+    children: [
       {
-        path: "admin",
+        index: true,
         element: <AdminDashboard />,
       },
     ],

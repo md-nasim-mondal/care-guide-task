@@ -1,6 +1,6 @@
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
-import AppError from "../../errorHelpers/AppError";
+import ApiError from "../../errorHelpers/ApiError";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IPost } from "./post.interface";
 import { Post } from "./post.model";
@@ -35,7 +35,7 @@ const getAllPosts = async (query: Record<string, string>) => {
 const deletePost = async (id: string, user: JwtPayload) => {
   const post = await Post.findById(id);
   if (!post) {
-    throw new AppError(httpStatus.NOT_FOUND, "Post not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Post not found");
   }
 
   if (
@@ -43,7 +43,7 @@ const deletePost = async (id: string, user: JwtPayload) => {
     user.role !== "SUPER_ADMIN" &&
     post.author.toString() !== user.userId
   ) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.FORBIDDEN,
       "You can only delete your own posts",
     );

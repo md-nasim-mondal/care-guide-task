@@ -5,7 +5,7 @@ import bcryptjs from "bcryptjs";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../../config/env";
-import AppError from "../../errorHelpers/AppError";
+import ApiError from "../../errorHelpers/ApiError";
 import {
   createNewAccessTokenWithRefreshToken,
   createUserTokens,
@@ -24,7 +24,7 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
   const isUserExist = await User.findOne({ email }).select("+password");
 
   if (!isUserExist) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Email does not exist");
+    throw new ApiError(httpStatus.BAD_REQUEST, "Email does not exist");
   }
 
   const isPasswordMatched = await bcryptjs.compare(
@@ -33,24 +33,24 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
   );
 
   if (!isPasswordMatched) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Incorrect Password");
+    throw new ApiError(httpStatus.BAD_REQUEST, "Incorrect Password");
   }
 
   if (
     isUserExist.isActive === IsActive.BLOCKED ||
     isUserExist.isActive === IsActive.INACTIVE
   ) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.BAD_REQUEST,
       `User is ${isUserExist.isActive}`,
     );
   }
   if (isUserExist.isDeleted) {
-    throw new AppError(httpStatus.BAD_REQUEST, "User is deleted!");
+    throw new ApiError(httpStatus.BAD_REQUEST, "User is deleted!");
   }
 
   if (!isUserExist.isVerified) {
-    // throw new AppError(httpStatus.BAD_REQUEST, "User is not verified!!");
+    // throw new ApiError(httpStatus.BAD_REQUEST, "User is not verified!!");
     // Verification skipped for this task as per instructions/current flow
   }
 
@@ -84,7 +84,7 @@ const changePassword = async (
     user!.password as string,
   );
   if (!isOldPasswordMatch) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Old Password does not match");
+    throw new ApiError(httpStatus.UNAUTHORIZED, "Old Password does not match");
   }
 
   user!.password = await bcryptjs.hash(
@@ -99,11 +99,11 @@ const resetPassword = async (
   decodedToken: JwtPayload,
 ) => {
   if (payload.id !== decodedToken.userId) {
-    throw new AppError(401, "You cannot reset your password!");
+    throw new ApiError(401, "You cannot reset your password!");
   }
   const isUserExist = await User.findById(decodedToken.userId);
   if (!isUserExist) {
-    throw new AppError(401, "User doesn't exist!");
+    throw new ApiError(401, "User doesn't exist!");
   }
 
   const hashedPassword = await bcryptjs.hash(
@@ -118,14 +118,14 @@ const resetPassword = async (
 const setPassword = async (userId: string, plainPassword: string) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new AppError(404, "User Not Found!");
+    throw new ApiError(404, "User Not Found!");
   }
 
   if (
     user.password &&
     user.auths.some((providerObject) => providerObject.provider === "google")
   ) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.BAD_REQUEST,
       "You have already set your password. Now you can change the password from your profile password update",
     );
@@ -152,19 +152,19 @@ const forgotPassword = async (email: string) => {
   const isUserExist = await User.findOne({ email });
 
   if (!isUserExist) {
-    throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
+    throw new ApiError(httpStatus.BAD_REQUEST, "User does not exist");
   }
   if (
     isUserExist.isActive === IsActive.BLOCKED ||
     isUserExist.isActive === IsActive.INACTIVE
   ) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.BAD_REQUEST,
       `User is ${isUserExist.isActive}`,
     );
   }
   if (isUserExist.isDeleted) {
-    throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
+    throw new ApiError(httpStatus.BAD_REQUEST, "User is deleted");
   }
 
   const jwtPayload = {

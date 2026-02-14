@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
 import { envVars } from "../config/env";
-import AppError from "../errorHelpers/AppError";
+import ApiError from "../errorHelpers/ApiError";
 import { handleCastError } from "../errorHelpers/handleCastError";
 import { handlerDuplicateError } from "../errorHelpers/handleDuplicateError";
 import { handlerValidationError } from "../errorHelpers/handlerValidationError";
@@ -61,7 +61,7 @@ export const globalErrorHandler = async (
     statusCode = simplifiedError.statusCode as number;
     errorSources = simplifiedError.errorSources as TErrorSources[];
     message = simplifiedError.message;
-  } else if (err instanceof AppError) {
+  } else if (err instanceof ApiError) {
     statusCode = err.statusCode;
     message = err.message;
   } else if (err instanceof Error) {

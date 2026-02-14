@@ -1,6 +1,6 @@
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
-import AppError from "../../errorHelpers/AppError";
+import ApiError from "../../errorHelpers/ApiError";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { INote } from "./note.interface";
 import { Note } from "./note.model";
@@ -55,7 +55,7 @@ const getAllNotes = async (query: Record<string, string>) => {
 const getSingleNote = async (id: string, user: JwtPayload) => {
   const note = await Note.findById(id).populate("author", "name email");
   if (!note) {
-    throw new AppError(httpStatus.NOT_FOUND, "Note not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Note not found");
   }
 
   if (
@@ -63,7 +63,7 @@ const getSingleNote = async (id: string, user: JwtPayload) => {
     user.role !== Role.SUPER_ADMIN &&
     note.author._id.toString() !== user.userId
   ) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.FORBIDDEN,
       "You are not authorized to view this note",
     );
@@ -79,11 +79,11 @@ const updateNote = async (
 ) => {
   const note = await Note.findById(id);
   if (!note) {
-    throw new AppError(httpStatus.NOT_FOUND, "Note not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Note not found");
   }
 
   if (note.author.toString() !== user.userId) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.FORBIDDEN,
       "You can only update your own notes",
     );
@@ -99,11 +99,11 @@ const updateNote = async (
 const deleteNote = async (id: string, user: JwtPayload) => {
   const note = await Note.findById(id);
   if (!note) {
-    throw new AppError(httpStatus.NOT_FOUND, "Note not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "Note not found");
   }
 
   if (note.author.toString() !== user.userId) {
-    throw new AppError(
+    throw new ApiError(
       httpStatus.FORBIDDEN,
       "You can only delete your own notes",
     );

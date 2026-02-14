@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status-codes";
 import { JwtPayload } from "jsonwebtoken";
-import AppError from "../../errorHelpers/AppError";
+import ApiError from "../../errorHelpers/ApiError";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { setAuthCookie } from "../../utils/setCookie";
@@ -30,7 +30,7 @@ const getNewAccessToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
-      throw new AppError(
+      throw new ApiError(
         httpStatus.BAD_REQUEST,
         "No refresh token received from cookies",
       );

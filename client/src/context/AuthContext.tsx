@@ -15,14 +15,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUser = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        const res = await api.get("/user/me");
-        setUser(res.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch user", error);
-      localStorage.removeItem("accessToken");
+      const res = await api.get("/user/me");
+      setUser(res.data.data);
+    } catch {
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -34,8 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (data: LoginData) => {
     try {
-      const res = await api.post("/auth/login", data);
-      localStorage.setItem("accessToken", res.data.data.accessToken);
+      await api.post("/auth/login", data);
       await fetchUser();
       toast.success("Logged in successfully");
     } catch (error) {
@@ -56,10 +51,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("accessToken");
-    setUser(null);
-    toast.success("Logged out");
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout");
+      setUser(null);
+      toast.success("Logged out");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (
