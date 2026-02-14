@@ -9,7 +9,6 @@ const router = Router();
 
 router.post(
   "/register",
-  // validateRequest(createUserZodSchema),
   UserControllers.createUser,
 );
 router.get(

@@ -30,15 +30,20 @@ const AdminDashboard = () => {
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [groupedUsers, setGroupedUsers] = useState<GroupedUser[]>([]);
   const [view, setView] = useState<"users" | "notes" | "grouped">("users");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await api.get("/user/all-users");
+      const res = await api.get("/user/all-users", {
+        params: { sortField: "createdAt", sortOrder },
+      });
       setUsers(res.data.data);
     };
 
     const fetchNotes = async () => {
-      const res = await api.get("/notes/all-notes");
+      const res = await api.get("/notes/all-notes", {
+        params: { sortField: "createdAt", sortOrder },
+      });
       setAllNotes(res.data.data);
     };
 
@@ -50,7 +55,7 @@ const AdminDashboard = () => {
     if (view === "users") fetchUsers();
     if (view === "notes") fetchNotes();
     if (view === "grouped") fetchGroupedUsers();
-  }, [view]);
+  }, [view, sortOrder]);
 
   return (
     <div className='container mx-auto p-4'>
@@ -71,6 +76,18 @@ const AdminDashboard = () => {
           className={`px-4 py-2 rounded ${view === "grouped" ? "bg-indigo-600 text-white" : "bg-gray-200"}`}>
           Grouped by Interests
         </button>
+      </div>
+
+      <div className='flex justify-end mb-4'>
+        {view !== "grouped" && (
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+            className='p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
+            <option value='desc'>Newest First</option>
+            <option value='asc'>Oldest First</option>
+          </select>
+        )}
       </div>
 
       <div className='bg-white p-6 rounded-lg shadow-md'>

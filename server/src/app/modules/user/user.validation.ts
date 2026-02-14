@@ -6,20 +6,6 @@ export const createUserZodSchema = z.object({
     .string({ message: "Name must be string" })
     .min(2, { message: "Name must be at least 2 characters long." })
     .max(50, { message: "Name cannot exceed 50 characters." }),
-  // name: z.object({
-  //     firstName: z.string({ message: "Name must be string" })
-  //         .min(2, { message: "Name must be at least 2 characters long." })
-  //         .max(50, { message: "Name cannot exceed 50 characters." }),
-  //     lastName: z.object({
-  //         nickName: z.string({ message: "Name must be string" })
-  //             .min(2, { message: "Name must be at least 2 characters long." })
-  //             .max(50, { message: "Name cannot exceed 50 characters." }),
-
-  //         surName: z.string({ message: "Name must be string" })
-  //             .min(2, { message: "Name must be at least 2 characters long." })
-  //             .max(50, { message: "Name cannot exceed 50 characters." }),
-  //     })
-  // }),
   email: z
     .string({ message: "Email must be string" })
     .email({ message: "Invalid email address format." })

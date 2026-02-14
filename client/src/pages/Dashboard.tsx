@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const navigate = useNavigate();
 
   const fetchNotes = async () => {
@@ -41,7 +42,9 @@ const Dashboard = () => {
     if (user) {
       const loadNotes = async () => {
         try {
-          const res = await api.get("/notes");
+          const res = await api.get("/notes", {
+            params: { sortField: "createdAt", sortOrder },
+          });
           setNotes(res.data.data);
         } catch (error) {
           console.error(error);
@@ -50,7 +53,7 @@ const Dashboard = () => {
       };
       loadNotes();
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, sortOrder]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +101,13 @@ const Dashboard = () => {
       <div className='flex justify-between items-center mb-6'>
         <h1 className='text-2xl font-bold'>My Notes</h1>
         <div>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+            className='mr-4 p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
+            <option value='desc'>Newest First</option>
+            <option value='asc'>Oldest First</option>
+          </select>
           <span className='mr-4'>Welcome, {user?.name}</span>
         </div>
       </div>
