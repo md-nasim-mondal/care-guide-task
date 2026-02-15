@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import api from "../api/api";
 import { LoadingPage } from "../components/common/LoadingPage";
+import { Pagination } from "../components/common/Pagination";
 
 interface Note {
   _id: string;
@@ -21,15 +22,23 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [limit] = useState(9); // 3x3 grid
+  const [totalPages, setTotalPages] = useState(1);
+
   useEffect(() => {
     if (user) {
       const fetchNotes = async () => {
         setLoading(true);
         try {
-          // Improve: Endpoint might need adjustment if we want *all* notes or just *user* notes.
-          // User said "user notes gulo". Assuming /notes returns user's notes.
-          const res = await api.get("/notes");
+          const res = await api.get("/notes", {
+            params: { page, limit, sortField: "createdAt", sortOrder: "desc" },
+          });
           setNotes(res.data.data);
+          if (res.data.meta) {
+            setTotalPages(res.data.meta.totalPage);
+          }
         } catch (error) {
           console.error(error);
         } finally {
@@ -38,7 +47,7 @@ const HomePage = () => {
       };
       fetchNotes();
     }
-  }, [user]);
+  }, [user, page, limit]);
 
   if (authLoading) return <LoadingPage />;
 
@@ -85,24 +94,33 @@ const HomePage = () => {
               </Link>
             </div>
           ) : (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-              {notes.map((note) => (
-                <div
-                  key={note._id}
-                  onClick={() => navigate(`/notes/${note._id}`)}
-                  className='bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border border-gray-200 cursor-pointer group'>
-                  <h3 className='text-xl font-semibold mb-2 group-hover:text-indigo-600 transition'>
-                    {note.title}
-                  </h3>
-                  <p className='text-gray-600 line-clamp-3 mb-4'>
-                    {note.content}
-                  </p>
-                  <div className='flex justify-between items-center text-xs text-gray-400'>
-                    <span>{new Date(note.createdAt).toLocaleDateString()}</span>
+            <>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                {notes.map((note) => (
+                  <div
+                    key={note._id}
+                    onClick={() => navigate(`/notes/${note._id}`)}
+                    className='bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border border-gray-200 cursor-pointer group'>
+                    <h3 className='text-xl font-semibold mb-2 group-hover:text-indigo-600 transition'>
+                      {note.title}
+                    </h3>
+                    <p className='text-gray-600 line-clamp-3 mb-4'>
+                      {note.content}
+                    </p>
+                    <div className='flex justify-between items-center text-xs text-gray-400'>
+                      <span>
+                        {new Date(note.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </>
           )}
         </div>
       )}

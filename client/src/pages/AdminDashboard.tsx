@@ -1,32 +1,8 @@
 import { useState, useEffect } from "react";
-import api from "../api/api";
-
-interface Note {
-  _id: string;
-  title: string;
-  content: string;
-  author: {
-    _id: string;
-    name: string;
-    email: string;
-  };
-}
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface GroupedUser {
-  _id: string; // interest
-  users: User[];
-  count: number;
-}
-
 import { useSearchParams } from "react-router";
+import api from "../api/api";
 import { toast } from "react-hot-toast";
+import { Pagination } from "../components/common/Pagination";
 
 interface Note {
   _id: string;
@@ -44,6 +20,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  isActive: string;
 }
 
 interface GroupedUser {
@@ -63,46 +40,126 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ users: 0, notes: 0 });
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Reset page when view changes
   useEffect(() => {
-    const fetchData = async () => {
+    setPage(1);
+  }, [view]);
+
+  const fetchUsers = async () => {
+    try {
       setLoading(true);
-      try {
-        if (!view) {
-          // Fetch stats (mocked by fetching all and counting for now)
-          const [usersRes, notesRes] = await Promise.all([
-            api.get("/user/all-users"),
-            api.get("/notes/all-notes"),
-          ]);
-          setStats({
-            users: usersRes.data.data.length,
-            notes: notesRes.data.data.length,
-          });
-          // Also set latest notes for activity feed if desired
-          setAllNotes(notesRes.data.data.slice(0, 5));
-        } else if (view === "users") {
-          const res = await api.get("/user/all-users", {
-            params: { sortField: "createdAt", sortOrder },
-          });
-          setUsers(res.data.data);
-        } else if (view === "notes") {
-          const res = await api.get("/notes/all-notes", {
-            params: { sortField: "createdAt", sortOrder },
-          });
-          setAllNotes(res.data.data);
-        } else if (view === "grouped") {
-          // Grouped view might not need sorting or different endpoint
-          const res = await api.get("/user/get-grouped-users-by-interests");
-          setGroupedUsers(res.data.data);
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to load data");
-      } finally {
-        setLoading(false);
+      const res = await api.get("/user/all-users", {
+        params: { sortField: "createdAt", sortOrder, page, limit },
+      });
+      setUsers(res.data.data);
+      setTotalPages(res.data.meta.totalPage);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/notes/all-notes", {
+        params: { sortField: "createdAt", sortOrder, page, limit },
+      });
+      setAllNotes(res.data.data);
+      // Assuming notes endpoint returns meta now or will return all if not paginated.
+      // If queryBuilder is used, it returns meta.
+      if (res.data.meta) {
+        setTotalPages(res.data.meta.totalPage);
       }
-    };
-    fetchData();
-  }, [view, sortOrder]);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load notes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchGroupedUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/user/get-grouped-users-by-interests");
+      setGroupedUsers(res.data.data);
+      // Grouped view doesn't support pagination yet
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load grouped users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      // Determining stats might require separate endpoints for total counts if pagination is used
+      // For now, let's assume we can fetch all or have a stats endpoint.
+      // Actually, creating a specific stats endpoint is better, but to keep it simple:
+      // We will just fetch the first page of users/notes and rely on 'meta.total' if available.
+      const [usersRes, notesRes] = await Promise.all([
+        api.get("/user/all-users?limit=1"), // minimal fetch
+        api.get("/notes/all-notes?limit=5"),
+      ]);
+
+      setStats({
+        users: usersRes.data.meta?.total || 0,
+        notes: notesRes.data.meta?.total || 0,
+      });
+      setAllNotes(notesRes.data.data); // Recent notes
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!view) {
+      fetchStats();
+    } else if (view === "users") {
+      fetchUsers();
+    } else if (view === "notes") {
+      fetchNotes();
+    } else if (view === "grouped") {
+      fetchGroupedUsers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, sortOrder, page, limit]);
+
+  const handleStatusChange = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "blocked" : "active";
+    try {
+      await api.patch(`/user/${userId}`, { isActive: newStatus });
+      toast.success(`User ${newStatus}`);
+      fetchUsers();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      await api.patch(`/user/${userId}`, { isDeleted: true });
+      toast.success("User deleted");
+      fetchUsers();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete user");
+    }
+  };
 
   return (
     <div className='container mx-auto p-4'>
@@ -178,6 +235,12 @@ const AdminDashboard = () => {
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                       Role
                     </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Status
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className='bg-white divide-y divide-gray-200'>
@@ -191,10 +254,33 @@ const AdminDashboard = () => {
                           {u.role}
                         </span>
                       </td>
+                      <td className='px-6 py-4 whitespace-nowrap'>
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.isActive === "active" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"}`}>
+                          {u.isActive}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
+                        <button
+                          onClick={() => handleStatusChange(u._id, u.isActive)}
+                          className='text-indigo-600 hover:text-indigo-900 mr-4'>
+                          {u.isActive === "active" ? "Block" : "Activate"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(u._id)}
+                          className='text-red-600 hover:text-red-900'>
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
             </div>
           )}
 
@@ -215,6 +301,11 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
             </div>
           )}
 
