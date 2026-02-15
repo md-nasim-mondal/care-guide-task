@@ -82,7 +82,11 @@ const updateNote = async (
     throw new ApiError(httpStatus.NOT_FOUND, "Note not found");
   }
 
-  if (note.author.toString() !== user.userId) {
+  if (
+    user.role !== Role.ADMIN &&
+    user.role !== Role.SUPER_ADMIN &&
+    note.author.toString() !== user.userId
+  ) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       "You can only update your own notes",
@@ -102,7 +106,11 @@ const deleteNote = async (id: string, user: JwtPayload) => {
     throw new ApiError(httpStatus.NOT_FOUND, "Note not found");
   }
 
-  if (note.author.toString() !== user.userId) {
+  if (
+    user.role !== Role.ADMIN &&
+    user.role !== Role.SUPER_ADMIN &&
+    note.author.toString() !== user.userId
+  ) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
       "You can only delete your own notes",

@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import api from "../api/api";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
 
@@ -9,6 +10,7 @@ interface Note {
   _id: string;
   title: string;
   content: string;
+  createdAt: string;
   author: {
     _id: string;
     name: string;
@@ -41,6 +43,14 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ users: 0, notes: 0 });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  // States for new features
+  const [userToToggleStatus, setUserToToggleStatus] = useState<User | null>(
+    null,
+  );
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
   // Pagination State
   const [page, setPage] = useState(1);
@@ -75,8 +85,6 @@ const AdminDashboard = () => {
         params: { sortField: "createdAt", sortOrder, page, limit },
       });
       setAllNotes(res.data.data);
-      // Assuming notes endpoint returns meta now or will return all if not paginated.
-      // If queryBuilder is used, it returns meta.
       if (res.data.meta) {
         setTotalPages(res.data.meta.totalPage);
       }
@@ -93,7 +101,6 @@ const AdminDashboard = () => {
       setLoading(true);
       const res = await api.get("/user/get-grouped-users-by-interests");
       setGroupedUsers(res.data.data);
-      // Grouped view doesn't support pagination yet
     } catch (error) {
       console.error(error);
       toast.error("Failed to load grouped users");
@@ -105,12 +112,8 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      // Determining stats might require separate endpoints for total counts if pagination is used
-      // For now, let's assume we can fetch all or have a stats endpoint.
-      // Actually, creating a specific stats endpoint is better, but to keep it simple:
-      // We will just fetch the first page of users/notes and rely on 'meta.total' if available.
       const [usersRes, notesRes] = await Promise.all([
-        api.get("/user/all-users?limit=1"), // minimal fetch
+        api.get("/user/all-users?limit=1"),
         api.get("/notes/all-notes?limit=5"),
       ]);
 
@@ -139,23 +142,49 @@ const AdminDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, sortOrder, page, limit]);
 
-  const handleStatusChange = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE";
+  // User Status Toggle
+  const handleStatusChangeClick = (user: User) => {
+    setUserToToggleStatus(user);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!userToToggleStatus) return;
+    const newStatus =
+      userToToggleStatus.isActive === "ACTIVE" ? "BLOCKED" : "ACTIVE";
     try {
-      await api.patch(`/user/${userId}`, { isActive: newStatus });
+      await api.patch(`/user/${userToToggleStatus._id}`, {
+        isActive: newStatus,
+      });
       toast.success(`User ${newStatus}`);
       fetchUsers();
+      setUserToToggleStatus(null);
     } catch (error) {
       console.error(error);
       toast.error("Failed to update status");
     }
   };
 
+  // User Role Change
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    // Optimistic UI update could be tricky with permissions, so we wait for API
+    try {
+      await api.patch(`/user/${userId}`, { role: newRole });
+      toast.success("User role updated");
+      fetchUsers();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to update role");
+      // Refresh to reset selection if failed
+      fetchUsers();
+    }
+  };
+
+  // User Delete
   const handleDeleteClick = (userId: string) => {
     setUserToDelete(userId);
   };
 
-  const confirmDelete = async () => {
+  const confirmDeleteUser = async () => {
     if (!userToDelete) return;
     try {
       await api.patch(`/user/${userToDelete}`, { isDeleted: true });
@@ -168,8 +197,56 @@ const AdminDashboard = () => {
     }
   };
 
+  // Note Actions
+  const openNoteModal = (note?: Note) => {
+    setEditingNote(note || null);
+    setIsNoteModalOpen(true);
+  };
+
+  const closeNoteModal = () => {
+    setEditingNote(null);
+    setIsNoteModalOpen(false);
+  };
+
+  const handleUpdateNote = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingNote) return;
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData);
+
+    try {
+      await api.patch(`/notes/${editingNote._id}`, data);
+      toast.success("Note updated");
+      closeNoteModal();
+      fetchNotes();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update note");
+    }
+  };
+
+  const handleDeleteNoteClick = (noteId: string) => {
+    setNoteToDelete(noteId);
+  };
+
+  const confirmDeleteNote = async () => {
+    if (!noteToDelete) return;
+
+    try {
+      await api.delete(`/notes/${noteToDelete}`);
+      toast.success("Note deleted");
+      fetchNotes();
+      setNoteToDelete(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete note");
+    }
+  };
+
   return (
     <div className='container mx-auto p-4'>
+      <Toaster />
       <div className='flex justify-between items-center mb-6'>
         <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
         {view && view !== "grouped" && (
@@ -256,10 +333,17 @@ const AdminDashboard = () => {
                       <td className='px-6 py-4 whitespace-nowrap'>{u.name}</td>
                       <td className='px-6 py-4 whitespace-nowrap'>{u.email}</td>
                       <td className='px-6 py-4 whitespace-nowrap'>
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === "ADMIN" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
-                          {u.role}
-                        </span>
+                        <select
+                          value={u.role}
+                          onChange={(e) =>
+                            handleRoleChange(u._id, e.target.value)
+                          }
+                          className='text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border-none focus:ring-2 focus:ring-indigo-500'>
+                          <option value='USER'>USER</option>
+                          <option value='ADMIN'>ADMIN</option>
+                          {/* Super Admin usually handled via DB or separate process, but let's include for completeness if needed */}
+                          {/* <option value="SUPER_ADMIN">SUPER_ADMIN</option> */}
+                        </select>
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <span
@@ -269,7 +353,7 @@ const AdminDashboard = () => {
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                         <button
-                          onClick={() => handleStatusChange(u._id, u.isActive)}
+                          onClick={() => handleStatusChangeClick(u)}
                           className='text-indigo-600 hover:text-indigo-900 mr-4'>
                           {u.isActive === "ACTIVE" ? "Block" : "Activate"}
                         </button>
@@ -292,22 +376,61 @@ const AdminDashboard = () => {
           )}
 
           {view === "notes" && (
-            <div>
-              <h2 className='text-xl font-semibold mb-4'>All Notes</h2>
-              <div className='space-y-4'>
-                {allNotes.map((n) => (
-                  <div
-                    key={n._id}
-                    className='border p-4 rounded hover:shadow-sm transition'>
-                    <h3 className='font-bold text-lg'>{n.title}</h3>
-                    <p className='text-gray-700 mt-1'>{n.content}</p>
-                    <div className='mt-2 pt-2 border-t flex justify-between items-center text-sm text-gray-500'>
-                      <span>Author: {n.author?.name}</span>
-                      <span>{n.author?.email}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className='overflow-x-auto'>
+              <h2 className='text-xl font-semibold mb-4'>
+                All Notes Management
+              </h2>
+              <table className='min-w-full divide-y divide-gray-200'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Title
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Content
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Author
+                    </th>
+                    <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className='bg-white divide-y divide-gray-200'>
+                  {allNotes.map((n) => (
+                    <tr key={n._id}>
+                      <td className='px-6 py-4 whitespace-nowrap font-medium text-gray-900'>
+                        {n.title}
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='text-sm text-gray-500 line-clamp-2 max-w-xs'>
+                          {n.content}
+                        </div>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>
+                        {n.author?.name}
+                        <br />
+                        <span className='text-xs text-gray-400'>
+                          {n.author?.email}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
+                        <button
+                          onClick={() => openNoteModal(n)}
+                          className='text-indigo-600 hover:text-indigo-900 mr-4'>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteNoteClick(n._id)}
+                          className='text-red-600 hover:text-red-900'>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
@@ -364,7 +487,107 @@ const AdminDashboard = () => {
               Cancel
             </button>
             <button
-              onClick={confirmDelete}
+              onClick={confirmDeleteUser}
+              className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm font-medium'>
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Confirm User Status Change Modal */}
+      <Modal
+        isOpen={!!userToToggleStatus}
+        onClose={() => setUserToToggleStatus(null)}
+        title='Confirm Status Change'>
+        <div className='space-y-4'>
+          <p className='text-gray-600'>
+            Are you sure you want to{" "}
+            <span className='font-bold'>
+              {userToToggleStatus?.isActive === "ACTIVE" ? "BLOCK" : "ACTIVATE"}
+            </span>{" "}
+            user <span className='font-bold'>{userToToggleStatus?.name}</span>?
+          </p>
+          <div className='flex gap-3 justify-end'>
+            <button
+              onClick={() => setUserToToggleStatus(null)}
+              className='px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium'>
+              Cancel
+            </button>
+            <button
+              onClick={confirmStatusChange}
+              className={`px-4 py-2 text-white rounded-md transition text-sm font-medium ${userToToggleStatus?.isActive === "ACTIVE" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}>
+              Confirm
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Note Modal */}
+      <Modal
+        isOpen={isNoteModalOpen}
+        onClose={closeNoteModal}
+        title='Edit User Note'>
+        <form onSubmit={handleUpdateNote} className='space-y-4'>
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Title
+            </label>
+            <input
+              type='text'
+              name='title'
+              defaultValue={editingNote?.title}
+              required
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'
+              placeholder='Enter note title'
+            />
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Content
+            </label>
+            <textarea
+              name='content'
+              rows={5}
+              defaultValue={editingNote?.content}
+              required
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'
+              placeholder='Write your note content here...'></textarea>
+          </div>
+          <div className='flex gap-3 pt-2'>
+            <button
+              type='submit'
+              className='flex-1 justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'>
+              Update Note
+            </button>
+            <button
+              type='button'
+              onClick={closeNoteModal}
+              className='flex-1 justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Note Confirmation Modal */}
+      <Modal
+        isOpen={!!noteToDelete}
+        onClose={() => setNoteToDelete(null)}
+        title='Confirm Delete Note'>
+        <div className='space-y-4'>
+          <p className='text-gray-600'>
+            Are you sure you want to delete this note? This action cannot be
+            undone.
+          </p>
+          <div className='flex gap-3 justify-end'>
+            <button
+              onClick={() => setNoteToDelete(null)}
+              className='px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium'>
+              Cancel
+            </button>
+            <button
+              onClick={confirmDeleteNote}
               className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm font-medium'>
               Delete
             </button>

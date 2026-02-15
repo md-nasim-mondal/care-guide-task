@@ -76,9 +76,22 @@ const updateUser = async (
       throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized");
     }
 
-    // if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
-    //     throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized");
-    // }
+    if (decodedToken.role === Role.ADMIN) {
+      // Admin cannot promote to Super Admin
+      if (payload.role === Role.SUPER_ADMIN) {
+        throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized");
+      }
+      // Admin cannot change role of another Admin or Super Admin
+      if (
+        ifUserExist.role === Role.ADMIN ||
+        ifUserExist.role === Role.SUPER_ADMIN
+      ) {
+        throw new ApiError(
+          httpStatus.FORBIDDEN,
+          "Admins cannot modify other Admins or Super Admins",
+        );
+      }
+    }
   }
 
   if (payload.isActive || payload.isDeleted || payload.isVerified) {
