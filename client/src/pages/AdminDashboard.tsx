@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router";
 import api from "../api/api";
 import { toast } from "react-hot-toast";
 import { Pagination } from "../components/common/Pagination";
+import { Modal } from "../components/common/Modal";
 
 interface Note {
   _id: string;
@@ -39,6 +40,7 @@ const AdminDashboard = () => {
   const [groupedUsers, setGroupedUsers] = useState<GroupedUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({ users: 0, notes: 0 });
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Pagination State
   const [page, setPage] = useState(1);
@@ -138,7 +140,7 @@ const AdminDashboard = () => {
   }, [view, sortOrder, page, limit]);
 
   const handleStatusChange = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === "active" ? "blocked" : "active";
+    const newStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE";
     try {
       await api.patch(`/user/${userId}`, { isActive: newStatus });
       toast.success(`User ${newStatus}`);
@@ -149,12 +151,17 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+  const handleDeleteClick = (userId: string) => {
+    setUserToDelete(userId);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
     try {
-      await api.patch(`/user/${userId}`, { isDeleted: true });
+      await api.patch(`/user/${userToDelete}`, { isDeleted: true });
       toast.success("User deleted");
       fetchUsers();
+      setUserToDelete(null);
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete user");
@@ -256,7 +263,7 @@ const AdminDashboard = () => {
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.isActive === "active" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"}`}>
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.isActive === "ACTIVE" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"}`}>
                           {u.isActive}
                         </span>
                       </td>
@@ -264,10 +271,10 @@ const AdminDashboard = () => {
                         <button
                           onClick={() => handleStatusChange(u._id, u.isActive)}
                           className='text-indigo-600 hover:text-indigo-900 mr-4'>
-                          {u.isActive === "active" ? "Block" : "Activate"}
+                          {u.isActive === "ACTIVE" ? "Block" : "Activate"}
                         </button>
                         <button
-                          onClick={() => handleDeleteUser(u._id)}
+                          onClick={() => handleDeleteClick(u._id)}
                           className='text-red-600 hover:text-red-900'>
                           Delete
                         </button>
@@ -339,6 +346,31 @@ const AdminDashboard = () => {
           )}
         </div>
       )}
+
+      {/* Delete User Confirmation Modal */}
+      <Modal
+        isOpen={!!userToDelete}
+        onClose={() => setUserToDelete(null)}
+        title='Confirm Delete User'>
+        <div className='space-y-4'>
+          <p className='text-gray-600'>
+            Are you sure you want to delete this user? This action cannot be
+            undone.
+          </p>
+          <div className='flex gap-3 justify-end'>
+            <button
+              onClick={() => setUserToDelete(null)}
+              className='px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition text-sm font-medium'>
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className='px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm font-medium'>
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
