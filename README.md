@@ -2,6 +2,11 @@
 
 A robust MERN stack application featuring role-based access control, secure authentication, and a community post system.
 
+## 🌍 Deployment
+
+- **Backend:** [https://care-guide-note-app-server.vercel.app](https://care-guide-note-app-server.vercel.app)
+- **Frontend:** [https://care-guide-note-app.vercel.app](https://care-guide-note-app.vercel.app)
+
 ## 🚀 Features
 
 ### Core Functionality
@@ -61,15 +66,27 @@ pnpm run dev
 **Backend `.env` Configuration:**
 
 ```env
+# Development
 PORT=5000
-DB_URL=mongodb://localhost:27017/care-guide-db
-BCRYPT_SALT_ROUND=12
-JWT_ACCESS_SECRET=super_secret_access_key
-JWT_REFRESH_SECRET=super_secret_refresh_key
-JWT_ACCESS_EXPIRES=1h
-JWT_REFRESH_EXPIRES=7d
-FRONTEND_URL=http://localhost:5173
+DB_URL=mongodb://localhost:27017/care-guide-task
 NODE_ENV=development
+BCRYPT_SALT_ROUND=12
+JWT_ACCESS_SECRET=your_access_secret_here
+JWT_ACCESS_EXPIRES=1d
+JWT_REFRESH_SECRET=your_refresh_secret_here
+JWT_REFRESH_EXPIRES=365d
+FRONTEND_URL=http://localhost:5173
+
+# Production
+PORT=5000
+DB_URL=your_production_mongo_url
+NODE_ENV=production
+BCRYPT_SALT_ROUND=12
+JWT_ACCESS_SECRET=your_access_secret_here
+JWT_ACCESS_EXPIRES=1d
+JWT_REFRESH_SECRET=your_refresh_secret_here
+JWT_REFRESH_EXPIRES=365d
+FRONTEND_URL=https://care-guide-note-app.vercel.app
 ```
 
 ### 2. Setup Frontend
@@ -85,7 +102,11 @@ pnpm run dev
 **Frontend `.env` Configuration:**
 
 ```env
-VITE_API_URL=http://localhost:5000/api/v1
+# Development
+VITE_API_DIR=http://localhost:5000/api/v1
+
+# Production
+VITE_API_DIR=https://care-guide-note-app-server.vercel.app/api/v1
 ```
 
 ## 🧪 Demo Credentials
