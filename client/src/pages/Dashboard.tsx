@@ -91,8 +91,14 @@ const Dashboard = () => {
     try {
       await api.delete(`/notes/${noteToDelete}`);
       toast.success("Note deleted");
-      fetchNotes();
       setNoteToDelete(null);
+      if (view === "notes") {
+        fetchNotes();
+      } else {
+        const res = await api.get("/notes?limit=3");
+        setTotalNotes(res.data.meta?.total || 0);
+        setNotes(res.data.data);
+      }
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete note");
@@ -127,7 +133,14 @@ const Dashboard = () => {
         toast.success("Note created");
       }
       closeModal();
-      fetchNotes();
+      if (view === "notes") {
+        fetchNotes();
+      } else {
+        // If on overview, refresh stats and recent notes
+        const res = await api.get("/notes?limit=3");
+        setTotalNotes(res.data.meta?.total || 0);
+        setNotes(res.data.data);
+      }
     } catch (error) {
       console.error(error);
       toast.error("Failed to save note");
