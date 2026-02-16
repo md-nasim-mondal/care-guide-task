@@ -3,7 +3,7 @@ import { checkAuth } from "../../middlewares/checkAuth";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { Role } from "../user/user.interface";
 import { PostControllers } from "./post.controller";
-import { createPostZodSchema } from "./post.validation";
+import { createPostZodSchema, updatePostZodSchema } from "./post.validation";
 
 const router = express.Router();
 
@@ -24,6 +24,13 @@ router.delete(
   "/:id",
   checkAuth(Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
   PostControllers.deletePost,
+);
+
+router.patch(
+  "/:id",
+  checkAuth(Role.USER, Role.ADMIN, Role.SUPER_ADMIN),
+  validateRequest(updatePostZodSchema),
+  PostControllers.updatePost,
 );
 
 export const PostRoutes = router;

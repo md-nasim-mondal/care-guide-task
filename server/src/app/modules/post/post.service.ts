@@ -53,8 +53,38 @@ const deletePost = async (id: string, user: JwtPayload) => {
   return null;
 };
 
+const updatePost = async (
+  id: string,
+  payload: Partial<IPost>,
+  user: JwtPayload,
+) => {
+  const post = await Post.findById(id);
+
+  if (!post) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Post not found");
+  }
+
+  if (
+    user.role !== "ADMIN" &&
+    user.role !== "SUPER_ADMIN" &&
+    post.author.toString() !== user.userId
+  ) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You can only edit your own posts",
+    );
+  }
+
+  const result = await Post.findByIdAndUpdate(id, payload, {
+    new: true,
+  }).populate("author", "name email");
+
+  return result;
+};
+
 export const PostServices = {
   createPost,
   getAllPosts,
   deletePost,
+  updatePost,
 };

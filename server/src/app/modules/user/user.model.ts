@@ -21,7 +21,6 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: Object.values(Role),
       default: Role.USER,
-      index: true,
     },
     interests: {
       type: [String],
@@ -44,5 +43,9 @@ const userSchema = new Schema<IUser>(
     versionKey: false,
   },
 );
+
+// Indexes
+// Indexes
+userSchema.index({ email: 1 });
 
 export const User = model<IUser>("User", userSchema);

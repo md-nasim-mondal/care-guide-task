@@ -27,6 +27,11 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       active: "/admin/dashboard/notes-management",
     },
     {
+      name: "Posts Management",
+      path: "/admin/dashboard/posts-management",
+      active: "/admin/dashboard/posts-management",
+    },
+    {
       name: "Grouped Users",
       path: "/admin/dashboard/grouped-users",
       active: "/admin/dashboard/grouped-users",
@@ -39,6 +44,16 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       name: "My Notes",
       path: "/dashboard/my-notes",
       active: "/dashboard/my-notes",
+    },
+    {
+      name: "Community",
+      path: "/dashboard/community",
+      active: "/dashboard/community",
+    },
+    {
+      name: "My Profile",
+      path: `/dashboard/profile/${user?._id}`, // Requires user ID from context
+      active: `/dashboard/profile/${user?._id}`,
     },
   ];
 

@@ -9,7 +9,6 @@ const noteSchema = new Schema<INote>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     }, // Indexed for listing user's notes
     isDeleted: { type: Boolean, default: false },
   },
@@ -18,5 +17,8 @@ const noteSchema = new Schema<INote>(
     versionKey: false,
   },
 );
+
+// Indexes
+noteSchema.index({ author: 1 });
 
 export const Note = model<INote>("Note", noteSchema);

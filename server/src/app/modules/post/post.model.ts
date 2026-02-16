@@ -8,7 +8,6 @@ const postSchema = new Schema<IPost>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     }, // Indexed for $lookup aggregation
     isDeleted: { type: Boolean, default: false },
   },
@@ -17,5 +16,8 @@ const postSchema = new Schema<IPost>(
     versionKey: false,
   },
 );
+
+// Indexes
+postSchema.index({ author: 1 });
 
 export const Post = model<IPost>("Post", postSchema);

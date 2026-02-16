@@ -6,8 +6,11 @@ import Dashboard from "../pages/Dashboard";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import UserManagement from "../pages/admin/UserManagement";
 import NotesManagement from "../pages/admin/NotesManagement";
+import PostManagement from "../pages/admin/PostManagement";
 import GroupedUsers from "../pages/admin/GroupedUsers";
 import MyNotes from "../pages/MyNotes";
+import CommunityFeed from "../pages/CommunityFeed";
+import UserProfile from "../pages/UserProfile";
 import NoteDetails from "../pages/NoteDetails";
 import MainLayout from "../components/layout/MainLayout";
 import DashboardLayout from "../components/layout/DashboardLayout";
@@ -60,6 +63,14 @@ export const router = createBrowserRouter([
         path: "my-notes",
         element: <MyNotes />,
       },
+      {
+        path: "community",
+        element: <CommunityFeed />,
+      },
+      {
+        path: "profile/:id",
+        element: <UserProfile />,
+      },
     ],
   },
   {
@@ -89,6 +100,10 @@ export const router = createBrowserRouter([
           {
             path: "notes-management",
             element: <NotesManagement />,
+          },
+          {
+            path: "posts-management",
+            element: <PostManagement />,
           },
           {
             path: "grouped-users",
