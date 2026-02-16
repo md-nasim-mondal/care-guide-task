@@ -1,4 +1,4 @@
-import { Link, useSearchParams, useLocation, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 
 interface SidebarProps {
@@ -8,23 +8,38 @@ interface SidebarProps {
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { user, logout } = useAuth();
-  const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const currentView = searchParams.get("view");
 
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
   const isAdminView = location.pathname.startsWith("/admin");
 
   const adminLinks = [
-    { name: "Dashboard", path: "/admin", view: null },
-    { name: "Users Management", path: "/admin?view=users", view: "users" },
-    { name: "Notes Management", path: "/admin?view=notes", view: "notes" },
+    { name: "Dashboard", path: "/admin/dashboard", active: "/admin/dashboard" },
+    {
+      name: "Users Management",
+      path: "/admin/dashboard/user-management",
+      active: "/admin/dashboard/user-management",
+    },
+    {
+      name: "Notes Management",
+      path: "/admin/dashboard/notes-management",
+      active: "/admin/dashboard/notes-management",
+    },
+    {
+      name: "Grouped Users",
+      path: "/admin/dashboard/grouped-users",
+      active: "/admin/dashboard/grouped-users",
+    },
   ];
 
   const userLinks = [
-    { name: "Dashboard", path: "/dashboard", view: null },
-    { name: "My Notes", path: "/dashboard?view=notes", view: "notes" },
+    { name: "Dashboard", path: "/dashboard", active: "/dashboard" },
+    {
+      name: "My Notes",
+      path: "/dashboard/my-notes",
+      active: "/dashboard/my-notes",
+    },
   ];
 
   const links = !isAdmin ? userLinks : isAdminView ? adminLinks : userLinks;
@@ -116,10 +131,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 to={link.path}
                 onClick={handleLinkClick}
                 className={`flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 ${
-                  (currentView === link.view && link.view !== null) ||
-                  (link.view === null &&
-                    !currentView &&
-                    location.pathname === link.path.split("?")[0])
+                  location.pathname === link.active
                     ? "bg-indigo-600 text-white shadow-md"
                     : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}>

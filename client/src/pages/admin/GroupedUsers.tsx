@@ -16,7 +16,7 @@ interface GroupedUser {
   count: number;
 }
 
-export const GroupedUsers = () => {
+const GroupedUsers = () => {
   const [groupedUsers, setGroupedUsers] = useState<GroupedUser[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -64,3 +64,5 @@ export const GroupedUsers = () => {
     </div>
   );
 };
+
+export default GroupedUsers;

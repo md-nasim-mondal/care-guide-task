@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import api from "../../api/api";
+import api from "../api/api";
 import { toast } from "react-hot-toast";
-import { Pagination } from "../common/Pagination";
-import { ConfirmationModal } from "../common/ConfirmationModal";
-import { NoteModal } from "../notes/NoteModal";
-import { SelectionModal } from "../common/SelectionModal";
+import { Pagination } from "../components/common/Pagination";
+import { ConfirmationModal } from "../components/common/ConfirmationModal";
+import { NoteModal } from "../components/notes/NoteModal";
+import { SelectionModal } from "../components/common/SelectionModal";
 
 interface Note {
   _id: string;
@@ -15,7 +15,7 @@ interface Note {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const MyNotes = () => {
+const MyNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -280,3 +280,5 @@ export const MyNotes = () => {
     </div>
   );
 };
+
+export default MyNotes;

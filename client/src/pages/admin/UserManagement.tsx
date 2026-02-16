@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../api/api";
 import { toast } from "react-hot-toast";
-import { Pagination } from "../common/Pagination";
-import { ConfirmationModal } from "../common/ConfirmationModal";
-import { SelectionModal } from "../common/SelectionModal";
+import { Pagination } from "../../components/common/Pagination";
+import { ConfirmationModal } from "../../components/common/ConfirmationModal";
+import { SelectionModal } from "../../components/common/SelectionModal";
 
 interface User {
   _id: string;
@@ -13,7 +13,7 @@ interface User {
   isActive: string;
 }
 
-export const UserManagement = () => {
+const UserManagement = () => {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const [users, setUsers] = useState<User[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -314,3 +314,5 @@ export const UserManagement = () => {
     </div>
   );
 };
+
+export default UserManagement;

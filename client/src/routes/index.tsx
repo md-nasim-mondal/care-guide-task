@@ -1,9 +1,13 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import HomePage from "../pages/HomePage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
-import AdminDashboard from "../pages/AdminDashboard";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import UserManagement from "../pages/admin/UserManagement";
+import NotesManagement from "../pages/admin/NotesManagement";
+import GroupedUsers from "../pages/admin/GroupedUsers";
+import MyNotes from "../pages/MyNotes";
 import NoteDetails from "../pages/NoteDetails";
 import MainLayout from "../components/layout/MainLayout";
 import DashboardLayout from "../components/layout/DashboardLayout";
@@ -52,6 +56,10 @@ export const router = createBrowserRouter([
         index: true,
         element: <Dashboard />,
       },
+      {
+        path: "my-notes",
+        element: <MyNotes />,
+      },
     ],
   },
   {
@@ -65,7 +73,28 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <AdminDashboard />,
+        element: <Navigate to='/admin/dashboard' replace />,
+      },
+      {
+        path: "dashboard",
+        children: [
+          {
+            index: true,
+            element: <AdminDashboard />,
+          },
+          {
+            path: "user-management",
+            element: <UserManagement />,
+          },
+          {
+            path: "notes-management",
+            element: <NotesManagement />,
+          },
+          {
+            path: "grouped-users",
+            element: <GroupedUsers />,
+          },
+        ],
       },
     ],
   },

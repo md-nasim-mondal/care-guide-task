@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import api from "../../api/api";
 import { toast } from "react-hot-toast";
-import { Pagination } from "../common/Pagination";
-import { ConfirmationModal } from "../common/ConfirmationModal";
-import { NoteModal } from "../notes/NoteModal";
-import { SelectionModal } from "../common/SelectionModal";
+import { Pagination } from "../../components/common/Pagination";
+import { ConfirmationModal } from "../../components/common/ConfirmationModal";
+import { NoteModal } from "../../components/notes/NoteModal";
+import { SelectionModal } from "../../components/common/SelectionModal";
 
 interface Note {
   _id: string;
@@ -19,7 +19,7 @@ interface Note {
   };
 }
 
-export const NotesManagement = () => {
+const NotesManagement = () => {
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -287,3 +287,5 @@ export const NotesManagement = () => {
     </div>
   );
 };
+
+export default NotesManagement;
