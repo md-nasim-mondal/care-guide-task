@@ -52,15 +52,16 @@ const getNewAccessToken = catchAsync(
 
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const { envVars } = await import("../../config/env");
     res.clearCookie("accessToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: envVars.NODE_ENV === "production",
+      sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: envVars.NODE_ENV === "production",
+      sameSite: envVars.NODE_ENV === "production" ? "none" : "lax",
     });
 
     sendResponse(res, {

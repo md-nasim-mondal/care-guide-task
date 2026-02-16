@@ -113,10 +113,10 @@ VITE_API_DIR=https://care-guide-note-app-server.vercel.app/api/v1
 
 The login page includes a **"Use Demo Credentials"** feature. Click the button to instantly autofill:
 
-| Role      | Email               | Password      |
-| :-------- | :------------------ | :------------ |
-| **Admin** | `admin@example.com` | `password123` |
-| **User**  | `user@example.com`  | `password123` |
+| Role      | Email               | Password |
+| :-------- | :------------------ | :------- |
+| **Admin** | `admin@example.com` | `123456` |
+| **User**  | `user@example.com`  | `123456` |
 
 ## 📂 Project Structure
 

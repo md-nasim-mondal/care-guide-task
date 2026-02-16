@@ -125,7 +125,7 @@ const Login = () => {
                 <div
                   onClick={() => {
                     setEmail("admin@example.com");
-                    setPassword("password123");
+                    setPassword("123456");
                     setIsDemoModalOpen(false);
                   }}
                   className='p-4 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-indigo-300 transition group'>
@@ -146,7 +146,7 @@ const Login = () => {
                 <div
                   onClick={() => {
                     setEmail("user@example.com");
-                    setPassword("password123");
+                    setPassword("123456");
                     setIsDemoModalOpen(false);
                   }}
                   className='p-4 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-green-300 transition group'>
@@ -165,7 +165,7 @@ const Login = () => {
                 </div>
               </div>
               <p className='text-xs text-center text-gray-400 mt-4'>
-                Note: Password is "password123" for both accounts.
+                Note: Password is "123456" for both accounts.
                 <br />
                 <span className='text-yellow-600 font-medium'>
                   2-Step Verification is DISABLED for testing purposes.
