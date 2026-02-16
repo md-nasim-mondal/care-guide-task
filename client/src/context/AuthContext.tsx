@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from "react";
 import api from "../api/api";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { AxiosError } from "axios";
 import {
   AuthContext,
@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+      <Toaster position='top-right' />
       {children}
     </AuthContext.Provider>
   );

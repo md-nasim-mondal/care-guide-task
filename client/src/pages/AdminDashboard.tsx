@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import api from "../api/api";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
 
@@ -10,7 +10,6 @@ interface Note {
   _id: string;
   title: string;
   content: string;
-  priority: "LOW" | "MEDIUM" | "HIGH";
   createdAt: string;
   author: {
     _id: string;
@@ -53,9 +52,8 @@ const AdminDashboard = () => {
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
-  // New States for Search and Filter (Admin Notes)
+  // New States for Search (Admin Notes)
   const [searchTerm, setSearchTerm] = useState("");
-  const [priorityFilter, setPriorityFilter] = useState("");
 
   // Pagination State
   const [page, setPage] = useState(1);
@@ -93,7 +91,6 @@ const AdminDashboard = () => {
         limit,
       };
       if (searchTerm) params.searchTerm = searchTerm;
-      if (priorityFilter) params.priority = priorityFilter;
 
       const res = await api.get("/notes/all-notes", { params });
       setAllNotes(res.data.data);
@@ -156,7 +153,7 @@ const AdminDashboard = () => {
       fetchGroupedUsers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, sortOrder, page, limit, searchTerm, priorityFilter]);
+  }, [view, sortOrder, page, limit, searchTerm]);
 
   // User Status Toggle
   const handleStatusChangeClick = (user: User) => {
@@ -260,22 +257,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "HIGH":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "MEDIUM":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "LOW":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
   return (
     <div className='container mx-auto p-4'>
-      <Toaster />
       <div className='flex justify-between items-center mb-6'>
         <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
         {view && view !== "grouped" && (
@@ -416,15 +399,6 @@ const AdminDashboard = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-64'
                   />
-                  <select
-                    value={priorityFilter}
-                    onChange={(e) => setPriorityFilter(e.target.value)}
-                    className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
-                    <option value=''>All Priorities</option>
-                    <option value='LOW'>Low</option>
-                    <option value='MEDIUM'>Medium</option>
-                    <option value='HIGH'>High</option>
-                  </select>
                 </div>
               </div>
 
@@ -432,7 +406,7 @@ const AdminDashboard = () => {
                 <thead className='bg-gray-50'>
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                      Title & Priority
+                      Title
                     </th>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                       Content
@@ -448,16 +422,8 @@ const AdminDashboard = () => {
                 <tbody className='bg-white divide-y divide-gray-200'>
                   {allNotes.map((n) => (
                     <tr key={n._id}>
-                      <td className='px-6 py-4 whitespace-nowrap'>
-                        <div className='flex flex-col gap-1'>
-                          <span className='font-medium text-gray-900'>
-                            {n.title}
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full border w-fit ${getPriorityColor(n.priority || "LOW")}`}>
-                            {n.priority || "LOW"}
-                          </span>
-                        </div>
+                      <td className='px-6 py-4 whitespace-nowrap font-medium text-gray-900'>
+                        {n.title}
                       </td>
                       <td className='px-6 py-4'>
                         <div className='text-sm text-gray-500 line-clamp-2 max-w-xs'>
@@ -614,19 +580,6 @@ const AdminDashboard = () => {
               required
               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'
               placeholder='Write your note content here...'></textarea>
-          </div>
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>
-              Priority
-            </label>
-            <select
-              name='priority'
-              defaultValue={editingNote?.priority || "LOW"}
-              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'>
-              <option value='LOW'>Low</option>
-              <option value='MEDIUM'>Medium</option>
-              <option value='HIGH'>High</option>
-            </select>
           </div>
           <div className='flex gap-3 pt-2'>
             <button

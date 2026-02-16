@@ -11,11 +11,6 @@ const noteSchema = new Schema<INote>(
       required: true,
       index: true,
     }, // Indexed for listing user's notes
-    priority: {
-      type: String,
-      enum: ["LOW", "MEDIUM", "HIGH"],
-      default: "LOW",
-    },
     isDeleted: { type: Boolean, default: false },
   },
   {
