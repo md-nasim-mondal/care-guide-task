@@ -6,6 +6,8 @@ import { INote } from "./note.interface";
 import { Note } from "./note.model";
 import { Role } from "../user/user.interface";
 
+import { noteSearchableFields } from "./note.constant";
+
 const createNote = async (payload: INote, user: JwtPayload) => {
   const note = await Note.create({
     ...payload,
@@ -21,7 +23,7 @@ const getMyNotes = async (query: Record<string, string>, user: JwtPayload) => {
   );
   const notesData = queryBuilder
     .filter()
-    .search(["title", "content"])
+    .search(noteSearchableFields)
     .sort()
     .fields()
     .paginate();
@@ -40,7 +42,7 @@ const getAllNotes = async (query: Record<string, string>) => {
   );
   const notesData = queryBuilder
     .filter()
-    .search(["title", "content"])
+    .search(noteSearchableFields)
     .sort()
     .fields()
     .paginate();

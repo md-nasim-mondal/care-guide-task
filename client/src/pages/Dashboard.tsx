@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import api from "../api/api";
 import { useAuth } from "../hooks/useAuth";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { Pagination } from "../components/common/Pagination";
 import { Modal } from "../components/common/Modal";
 
@@ -10,6 +11,7 @@ interface Note {
   _id: string;
   title: string;
   content: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
   createdAt: string;
 }
 
@@ -23,6 +25,10 @@ const Dashboard = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // New States for Search and Filter
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+
   // Pagination
   const [page, setPage] = useState(1);
   const [limit] = useState(9);
@@ -34,9 +40,16 @@ const Dashboard = () => {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/notes", {
-        params: { sortField: "createdAt", sortOrder, page, limit },
-      });
+      const params: any = {
+        sortField: "createdAt",
+        sortOrder,
+        page,
+        limit,
+      };
+      if (searchTerm) params.searchTerm = searchTerm;
+      if (priorityFilter) params.priority = priorityFilter;
+
+      const res = await api.get("/notes", { params });
       setNotes(res.data.data);
       if (res.data.meta) {
         setTotalPages(res.data.meta.totalPage);
@@ -52,7 +65,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (view === "notes") {
-      fetchNotes();
+      // Debounce search could be added here, but for simplicity:
+      const timeoutId = setTimeout(() => {
+        fetchNotes();
+      }, 300);
+      return () => clearTimeout(timeoutId);
     } else {
       const fetchStats = async () => {
         try {
@@ -66,7 +83,7 @@ const Dashboard = () => {
       fetchStats();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, sortOrder, page, limit]);
+  }, [view, sortOrder, page, limit, searchTerm, priorityFilter]);
 
   const handleDeleteClick = (id: string) => {
     setNoteToDelete(id);
@@ -120,8 +137,22 @@ const Dashboard = () => {
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "HIGH":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "LOW":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
   return (
     <div className='container mx-auto p-4'>
+      <Toaster />
       <h1 className='text-3xl font-bold mb-6'>
         {view === "notes" ? "My Notes" : "Dashboard Overview"}
       </h1>
@@ -152,8 +183,14 @@ const Dashboard = () => {
               {notes.slice(0, 3).map((note) => (
                 <div
                   key={note._id}
-                  className='bg-white p-6 rounded-lg shadow-md border hover:shadow-lg transition'>
-                  <h3 className='font-bold text-lg mb-2 truncate'>
+                  className='bg-white p-6 rounded-lg shadow-md border hover:shadow-lg transition relative'>
+                  <div className='absolute top-4 right-4'>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full border font-medium ${getPriorityColor(note.priority || "LOW")}`}>
+                      {note.priority || "LOW"}
+                    </span>
+                  </div>
+                  <h3 className='font-bold text-lg mb-2 truncate pr-16'>
                     {note.title}
                   </h3>
                   <p className='text-gray-600 text-sm line-clamp-3'>
@@ -185,22 +222,43 @@ const Dashboard = () => {
 
       {view === "notes" && (
         <div className='space-y-6'>
-          <div className='flex justify-between items-center'>
-            <div className='flex items-center gap-4'>
-              <h2 className='text-xl font-semibold'>Your Notes</h2>
+          <div className='flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-lg shadow-sm border'>
+            <div className='flex items-center gap-4 w-full md:w-auto'>
+              <h2 className='text-xl font-semibold whitespace-nowrap'>
+                Your Notes
+              </h2>
               <button
                 onClick={() => openModal()}
-                className='bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm font-medium text-sm'>
+                className='bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition shadow-sm font-medium text-sm whitespace-nowrap'>
                 + Create Note
               </button>
             </div>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-              className='p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
-              <option value='desc'>Newest First</option>
-              <option value='asc'>Oldest First</option>
-            </select>
+
+            <div className='flex flex-col md:flex-row gap-3 w-full md:w-auto'>
+              <input
+                type='text'
+                placeholder='Search by title...'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-64'
+              />
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
+                <option value=''>All Priorities</option>
+                <option value='LOW'>Low</option>
+                <option value='MEDIUM'>Medium</option>
+                <option value='HIGH'>High</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+                className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
+                <option value='desc'>Newest First</option>
+                <option value='asc'>Oldest First</option>
+              </select>
+            </div>
           </div>
 
           {loading ? (
@@ -212,9 +270,16 @@ const Dashboard = () => {
                   <div
                     key={note._id}
                     className='bg-white p-6 rounded-lg shadow-md border hover:shadow-lg transition relative group flex flex-col'>
-                    <h3 className='font-bold text-lg mb-2 pr-8 truncate'>
-                      {note.title}
-                    </h3>
+                    <div className='flex justify-between items-start mb-2'>
+                      <h3 className='font-bold text-lg pr-2 truncate flex-1'>
+                        {note.title}
+                      </h3>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full border font-medium whitespace-nowrap ${getPriorityColor(note.priority || "LOW")}`}>
+                        {note.priority || "LOW"}
+                      </span>
+                    </div>
+
                     <p className='text-gray-600 text-sm mb-4 line-clamp-3 grow'>
                       {note.content}
                     </p>
@@ -242,7 +307,7 @@ const Dashboard = () => {
               </div>
               {notes.length === 0 && (
                 <div className='text-center py-10 bg-gray-50 rounded-lg border border-dashed text-gray-500'>
-                  No notes found. Create your first note!
+                  No notes found matching your filters.
                 </div>
               )}
               <Pagination
@@ -285,6 +350,19 @@ const Dashboard = () => {
               required
               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'
               placeholder='Write your note content here...'></textarea>
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Priority
+            </label>
+            <select
+              name='priority'
+              defaultValue={editingNote?.priority || "LOW"}
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'>
+              <option value='LOW'>Low</option>
+              <option value='MEDIUM'>Medium</option>
+              <option value='HIGH'>High</option>
+            </select>
           </div>
           <div className='flex gap-3 pt-2'>
             <button

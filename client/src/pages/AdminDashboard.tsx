@@ -10,6 +10,7 @@ interface Note {
   _id: string;
   title: string;
   content: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
   createdAt: string;
   author: {
     _id: string;
@@ -52,6 +53,10 @@ const AdminDashboard = () => {
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
+  // New States for Search and Filter (Admin Notes)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+
   // Pagination State
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -81,9 +86,16 @@ const AdminDashboard = () => {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/notes/all-notes", {
-        params: { sortField: "createdAt", sortOrder, page, limit },
-      });
+      const params: any = {
+        sortField: "createdAt",
+        sortOrder,
+        page,
+        limit,
+      };
+      if (searchTerm) params.searchTerm = searchTerm;
+      if (priorityFilter) params.priority = priorityFilter;
+
+      const res = await api.get("/notes/all-notes", { params });
       setAllNotes(res.data.data);
       if (res.data.meta) {
         setTotalPages(res.data.meta.totalPage);
@@ -135,12 +147,16 @@ const AdminDashboard = () => {
     } else if (view === "users") {
       fetchUsers();
     } else if (view === "notes") {
-      fetchNotes();
+      // Debounce search
+      const timeoutId = setTimeout(() => {
+        fetchNotes();
+      }, 300);
+      return () => clearTimeout(timeoutId);
     } else if (view === "grouped") {
       fetchGroupedUsers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, sortOrder, page, limit]);
+  }, [view, sortOrder, page, limit, searchTerm, priorityFilter]);
 
   // User Status Toggle
   const handleStatusChangeClick = (user: User) => {
@@ -241,6 +257,19 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete note");
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "HIGH":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "MEDIUM":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "LOW":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -377,14 +406,33 @@ const AdminDashboard = () => {
 
           {view === "notes" && (
             <div className='overflow-x-auto'>
-              <h2 className='text-xl font-semibold mb-4'>
-                All Notes Management
-              </h2>
+              <div className='flex flex-col md:flex-row justify-between items-center mb-4 gap-4'>
+                <h2 className='text-xl font-semibold'>All Notes Management</h2>
+                <div className='flex flex-col md:flex-row gap-3 w-full md:w-auto'>
+                  <input
+                    type='text'
+                    placeholder='Search by title...'
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-64'
+                  />
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className='p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
+                    <option value=''>All Priorities</option>
+                    <option value='LOW'>Low</option>
+                    <option value='MEDIUM'>Medium</option>
+                    <option value='HIGH'>High</option>
+                  </select>
+                </div>
+              </div>
+
               <table className='min-w-full divide-y divide-gray-200'>
                 <thead className='bg-gray-50'>
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                      Title
+                      Title & Priority
                     </th>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
                       Content
@@ -400,8 +448,16 @@ const AdminDashboard = () => {
                 <tbody className='bg-white divide-y divide-gray-200'>
                   {allNotes.map((n) => (
                     <tr key={n._id}>
-                      <td className='px-6 py-4 whitespace-nowrap font-medium text-gray-900'>
-                        {n.title}
+                      <td className='px-6 py-4 whitespace-nowrap'>
+                        <div className='flex flex-col gap-1'>
+                          <span className='font-medium text-gray-900'>
+                            {n.title}
+                          </span>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full border w-fit ${getPriorityColor(n.priority || "LOW")}`}>
+                            {n.priority || "LOW"}
+                          </span>
+                        </div>
                       </td>
                       <td className='px-6 py-4'>
                         <div className='text-sm text-gray-500 line-clamp-2 max-w-xs'>
@@ -431,6 +487,11 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+              {allNotes.length === 0 && (
+                <div className='text-center py-10 text-gray-500'>
+                  No notes found matching your filters.
+                </div>
+              )}
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
@@ -553,6 +614,19 @@ const AdminDashboard = () => {
               required
               className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'
               placeholder='Write your note content here...'></textarea>
+          </div>
+          <div>
+            <label className='block text-sm font-medium text-gray-700'>
+              Priority
+            </label>
+            <select
+              name='priority'
+              defaultValue={editingNote?.priority || "LOW"}
+              className='mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border'>
+              <option value='LOW'>Low</option>
+              <option value='MEDIUM'>Medium</option>
+              <option value='HIGH'>High</option>
+            </select>
           </div>
           <div className='flex gap-3 pt-2'>
             <button
