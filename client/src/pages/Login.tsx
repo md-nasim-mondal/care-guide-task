@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
@@ -100,6 +101,75 @@ const Login = () => {
             </p>
           </div>
         </form>
+
+        <button
+          type='button'
+          onClick={() => setIsDemoModalOpen(true)}
+          className='mt-4 w-full text-indigo-600 hover:text-indigo-800 text-sm font-semibold underline'>
+          Use Demo Credentials
+        </button>
+
+        {/* Demo Credentials Modal */}
+        {isDemoModalOpen && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+            <div className='bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative'>
+              <button
+                onClick={() => setIsDemoModalOpen(false)}
+                className='absolute top-3 right-3 text-gray-500 hover:text-gray-700'>
+                ✕
+              </button>
+              <h3 className='text-xl font-bold mb-4 text-gray-900'>
+                Select Demo User
+              </h3>
+              <div className='space-y-3'>
+                <div
+                  onClick={() => {
+                    setEmail("admin@example.com");
+                    setPassword("password123");
+                    setIsDemoModalOpen(false);
+                  }}
+                  className='p-4 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-indigo-300 transition group'>
+                  <div className='flex justify-between items-center mb-1'>
+                    <span className='font-bold text-gray-800'>
+                      Admin Account
+                    </span>
+                    <span className='text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full'>
+                      Admin
+                    </span>
+                  </div>
+                  <p className='text-sm text-gray-600'>admin@example.com</p>
+                  <p className='text-xs text-gray-400 mt-1 group-hover:text-indigo-600'>
+                    Click to fill
+                  </p>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setEmail("user@example.com");
+                    setPassword("password123");
+                    setIsDemoModalOpen(false);
+                  }}
+                  className='p-4 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-green-300 transition group'>
+                  <div className='flex justify-between items-center mb-1'>
+                    <span className='font-bold text-gray-800'>
+                      User Account
+                    </span>
+                    <span className='text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full'>
+                      User
+                    </span>
+                  </div>
+                  <p className='text-sm text-gray-600'>user@example.com</p>
+                  <p className='text-xs text-gray-400 mt-1 group-hover:text-green-600'>
+                    Click to fill
+                  </p>
+                </div>
+              </div>
+              <p className='text-xs text-center text-gray-400 mt-4'>
+                Note: Password is "password123" for both accounts.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

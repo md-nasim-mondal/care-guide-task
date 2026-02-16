@@ -1,120 +1,118 @@
-# Care Guide Task - Monorepo
+# Care Guide Task - Secure Note-Taking Application
 
-This repository contains the source code for the "Care Guide Task" application, structured as a monorepo with separate `client` and `server` directories.
+A robust MERN stack application featuring role-based access control, secure authentication, and a community post system.
 
-## Project Structure
+## 🚀 Features
 
-- **client/**: Contains the React frontend application built with Vite and TailwindCSS.
-- **server/**: Contains the Node.js/Express backend application with MongoDB (Mongoose).
+### Core Functionality
 
-## Tech Stack
+- **Authentication**: Secure JWT-based auth (Access/Refresh Tokens) with Bcrypt password hashing.
+- **Role-Based Access Control (RBAC)**:
+  - **User**: Manage own notes, create posts, view community feed.
+  - **Admin**: Manage all users, all notes, and all community posts.
+- **Note Management**: CRUD operations for personal notes.
+- **Community System**:
+  - **Feed**: View and create posts visible to everyone.
+  - **User Profile**: View specific user details and their aggregated posts (using `$lookup`).
+  - **Post Editing**: Edit own posts (or any post as Admin).
 
-### Frontend (Client)
+### Technical Highlights
 
-- React
-- Vite
-- TailwindCSS
-- TypeScript
-- React Router
-- Axios for API requests
+- **Pagination**: Implemented for Users, Notes, and Posts lists.
+- **optimized Indexing**: Strategically indexed fields (`email`, `author`) to support queries while avoiding unnecessary overhead.
+- **Aggregations**:
+  - **Scenario 1**: Group users by interest (`$unwind`, `$group`).
+  - **Scenario 2**: Fetch user posts (`$lookup`).
+- **Responsive UI**: Built with React, TailwindCSS, and reusable components.
 
-### Backend (Server)
+## 🛠 Tech Stack
 
-- Node.js
-- Express.js
-- MongoDB with Mongoose
-- TypeScript
-- JWT Authentication
+- **Frontend**: React, Vite, TypeScript, TailwindCSS, React Router, React Hot Toast.
+- **Backend**: Node.js, Express, MongoDB (Mongoose), TypeScript, Zod (Validation).
 
-## Prerequisites
+## 🏁 Getting Started
 
-Before running the project, ensure you have the following installed:
+### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher recommended)
-- [pnpm](https://pnpm.io/) (recommended package manager)
-- [MongoDB](https://www.mongodb.com/) (local instance or Atlas URI)
+- Node.js (v18+)
+- pnpm (recommended) or npm
+- MongoDB (Local or Atlas)
 
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone <repository-url>
-cd care-guide-task
-```
-
-### 2. server Setup
-
-Navigate to the `server` directory and install dependencies:
+### 1. Setup Backend
 
 ```bash
 cd server
 pnpm install
+
+# Create .env file
+cp .env.example .env # (Or copy the config below)
+
+# Seed Database (Creates Demo Admin & User)
+pnpm run seed
+# Output:
+# Admin: admin@example.com / 123456
+# User: user@example.com / 123456
+
+# Start Dev Server
+pnpm run dev
 ```
 
-Create a `.env` file in the `server` directory with the following variables (example):
+**Backend `.env` Configuration:**
 
 ```env
 PORT=5000
 DB_URL=mongodb://localhost:27017/care-guide-db
-BCRYPT_SALT_ROUNDS=12
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-JWT_ACCESS_EXPIRES_IN=1h
-JWT_REFRESH_EXPIRES_IN=7d
+BCRYPT_SALT_ROUND=12
+JWT_ACCESS_SECRET=super_secret_access_key
+JWT_REFRESH_SECRET=super_secret_refresh_key
+JWT_ACCESS_EXPIRES=1h
+JWT_REFRESH_EXPIRES=7d
 FRONTEND_URL=http://localhost:5173
 NODE_ENV=development
 ```
 
-Start the server:
-
-```bash
-pnpm run dev
-```
-
-The server should be running on `http://localhost:5000`.
-
-### 3. Client Setup
-
-Open a new terminal, navigate to the `client` directory, and install dependencies:
+### 2. Setup Frontend
 
 ```bash
 cd client
 pnpm install
-```
 
-Create a `.env` file in the `client` directory (optional, if defaults are used):
-
-```env
-VITE_API_DIR=http://localhost:5000/api/v1
-```
-
-Start the client development server:
-
-```bash
+# Start Dev Server
 pnpm run dev
 ```
 
-The client should be running on `http://localhost:5173`.
+**Frontend `.env` Configuration:**
 
-## Scripts
+```env
+VITE_API_URL=http://localhost:5000/api/v1
+```
 
-### Root specific scripts (if package.json exists in root)
+## 🧪 Demo Credentials
 
-Currently, scripts are managed within `client` and `server` directories respectively.
+The login page includes a **"Use Demo Credentials"** feature. Click the button to instantly autofill:
 
-### Client Scripts
+| Role      | Email               | Password      |
+| :-------- | :------------------ | :------------ |
+| **Admin** | `admin@example.com` | `password123` |
+| **User**  | `user@example.com`  | `password123` |
 
-- `pnpm run dev`: Start development server
-- `pnpm run build`: Build for production
-- `pnpm run lint`: Run ESLint
+## 📂 Project Structure
 
-### Server Scripts
+```
+├── client/              # React Frontend
+│   ├── src/
+│   │   ├── components/  # Reusable UI components
+│   │   ├── pages/       # Page views (Admin/User)
+│   │   ├── hooks/       # Custom hooks (useAuth)
+│   │   └── api/         # Axios setup
+├── server/              # Express Backend
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── modules/ # Feature modules (User, Note, Post)
+│   │   │   └── utils/   # Helpers (QueryBuilder, AppError)
+│   │   └── scripts/     # Utility scripts (seed.ts)
+```
 
-- `pnpm run dev`: Start development server with hot-reload (nodemon/ts-node)
-- `pnpm run build`: Compile TypeScript
-- `pnpm start`: Run compiled server
+## 📜 License
 
-## License
-
-[MIT](LICENSE)
+MIT
