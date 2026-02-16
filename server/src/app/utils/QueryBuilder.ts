@@ -18,7 +18,7 @@ export class QueryBuilder<T> {
       delete filter[field];
     }
 
-    this.modelQuery = this.modelQuery.find(filter); // Tour.find().find(filter)
+    this.modelQuery = this.modelQuery.find(filter);
 
     return this;
   }
@@ -72,7 +72,9 @@ export class QueryBuilder<T> {
   }
 
   async getMeta() {
-    const totalDocuments = await this.modelQuery.model.countDocuments();
+    const totalQueries = this.modelQuery.getFilter();
+    const totalDocuments =
+      await this.modelQuery.model.countDocuments(totalQueries);
 
     const page = Number(this.query.page) || 1;
     const limit = Number(this.query.limit) || 10;

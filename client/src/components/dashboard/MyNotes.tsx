@@ -28,7 +28,6 @@ export const MyNotes = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
 
-  // Selection Modal states
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
 
@@ -95,7 +94,6 @@ export const MyNotes = () => {
 
   const openModal = (note?: Note) => {
     if (note) {
-      // Cast to match NoteModal interface if needed, or assume data matches
       setEditingNote(note);
     } else {
       setEditingNote(null);
@@ -135,6 +133,8 @@ export const MyNotes = () => {
   ];
 
   const limitOptions = [
+    { label: "3/page", value: 3 },
+    { label: "6/page", value: 6 },
     { label: "9/page", value: 9 },
     { label: "18/page", value: 18 },
     { label: "27/page", value: 27 },

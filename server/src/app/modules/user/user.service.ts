@@ -62,26 +62,15 @@ const updateUser = async (
     throw new ApiError(401, "You are not authorized!");
   }
 
-  /**
-   * email - can not update
-   * name, phone, password address
-   * password - re hashing
-   *  only admin superadmin - role, isDeleted...
-   *
-   * promoting to superadmin - superadmin
-   */
-
   if (payload.role) {
     if (decodedToken.role === Role.USER) {
       throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized");
     }
 
     if (decodedToken.role === Role.ADMIN) {
-      // Admin cannot promote to Super Admin
       if (payload.role === Role.SUPER_ADMIN) {
         throw new ApiError(httpStatus.FORBIDDEN, "You are not authorized");
       }
-      // Admin cannot change role of another Admin or Super Admin
       if (
         ifUserExist.role === Role.ADMIN ||
         ifUserExist.role === Role.SUPER_ADMIN

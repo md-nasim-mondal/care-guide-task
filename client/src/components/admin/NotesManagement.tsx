@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router";
 import api from "../../api/api";
 import { toast } from "react-hot-toast";
 import { Pagination } from "../common/Pagination";
@@ -30,7 +31,6 @@ export const NotesManagement = () => {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
-  // Modal states
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
 
   const fetchNotes = async () => {
@@ -176,8 +176,15 @@ export const NotesManagement = () => {
                   {n?.title}
                 </td>
                 <td className='px-6 py-4'>
-                  <div className='text-sm text-gray-500 line-clamp-2 max-w-xs'>
-                    {n?.content}
+                  <div className='text-sm text-gray-500'>
+                    <div className='line-clamp-2 max-w-xs mb-1'>
+                      {n?.content}
+                    </div>
+                    <Link
+                      to={`/notes/${n?._id}`}
+                      className='text-indigo-600 hover:text-indigo-800 text-xs font-medium hover:underline'>
+                      See more
+                    </Link>
                   </div>
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>

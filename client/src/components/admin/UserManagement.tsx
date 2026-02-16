@@ -26,7 +26,6 @@ export const UserManagement = () => {
   );
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-  // Modal states
   const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [userToChangeRole, setUserToChangeRole] = useState<User | null>(null);
 
@@ -35,7 +34,7 @@ export const UserManagement = () => {
       const res = await api.get("/user/all-users", {
         params: {
           sortField: "createdAt",
-          sortOrder: "desc", // Default sort
+          sortOrder: "desc",
           page,
           limit,
           searchTerm: userSearchTerm,

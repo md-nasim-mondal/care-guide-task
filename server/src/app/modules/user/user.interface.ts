@@ -6,14 +6,8 @@ export enum Role {
   USER = "USER",
 }
 
-//auth providers
-/**
- * email, password
- * google authentication
- */
-
 export interface IAuthProvider {
-  provider: "google" | "credentials"; // "Google", "Credential"
+  provider: "google" | "credentials";
   providerId: string;
 }
 
@@ -31,7 +25,7 @@ export interface IUser {
   phone?: string;
   picture?: string;
   address?: string;
-  isDeleted?: boolean; // Changed string to boolean to match usage/model
+  isDeleted?: boolean;
   isActive?: IsActive;
   isVerified?: boolean;
   role: Role;
