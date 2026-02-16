@@ -6,6 +6,15 @@ import { seedAdminUser } from "./scripts/seed";
 
 let server: Server;
 
+if (envVars.NODE_ENV === "production") {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  console.log = () => {};
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  console.warn = () => {};
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  console.error = () => {};
+}
+
 const startServer = async () => {
   try {
     await mongoose.connect(envVars.DB_URL, {
@@ -24,7 +33,7 @@ const startServer = async () => {
 
 (async () => {
   await startServer();
-  await seedAdminUser()
+  await seedAdminUser();
 })();
 
 process.on("SIGTERM", () => {
