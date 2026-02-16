@@ -44,7 +44,6 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ users: 0, notes: 0 });
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
-  // States for new features
   const [userToToggleStatus, setUserToToggleStatus] = useState<User | null>(
     null,
   );
@@ -52,15 +51,12 @@ const AdminDashboard = () => {
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
-  // New States for Search (Admin Notes)
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Pagination State
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Reset page when view changes
   useEffect(() => {
     setPage(1);
   }, [view]);
@@ -155,7 +151,6 @@ const AdminDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, sortOrder, page, limit, searchTerm]);
 
-  // User Status Toggle
   const handleStatusChangeClick = (user: User) => {
     setUserToToggleStatus(user);
   };
@@ -177,7 +172,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // User Role Change
   const handleRoleChange = async (userId: string, newRole: string) => {
     // Optimistic UI update could be tricky with permissions, so we wait for API
     try {
@@ -192,7 +186,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // User Delete
   const handleDeleteClick = (userId: string) => {
     setUserToDelete(userId);
   };
@@ -210,7 +203,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Note Actions
   const openNoteModal = (note?: Note) => {
     setEditingNote(note || null);
     setIsNoteModalOpen(true);
@@ -259,13 +251,13 @@ const AdminDashboard = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <div className='flex justify-between items-center mb-6'>
+      <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4'>
         <h1 className='text-2xl font-bold'>Admin Dashboard</h1>
         {view && view !== "grouped" && (
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-            className='p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500'>
+            className='p-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-auto'>
             <option value='desc'>Newest First</option>
             <option value='asc'>Oldest First</option>
           </select>
@@ -319,7 +311,7 @@ const AdminDashboard = () => {
           {view === "users" && (
             <div className='overflow-x-auto'>
               <h2 className='text-xl font-semibold mb-4'>All Users</h2>
-              <table className='min-w-full divide-y divide-gray-200'>
+              <table className='min-w-full divide-y divide-gray-200 hidden md:table'>
                 <thead className='bg-gray-50'>
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
@@ -350,11 +342,9 @@ const AdminDashboard = () => {
                           onChange={(e) =>
                             handleRoleChange(u._id, e.target.value)
                           }
-                          className='text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border-none focus:ring-2 focus:ring-indigo-500'>
+                          className='text-xs font-semibold rounded-full bg-gray-100 text-gray-800 border-none focus:ring-2 focus:ring-indigo-500 p-1'>
                           <option value='USER'>USER</option>
                           <option value='ADMIN'>ADMIN</option>
-                          {/* Super Admin usually handled via DB or separate process, but let's include for completeness if needed */}
-                          {/* <option value="SUPER_ADMIN">SUPER_ADMIN</option> */}
                         </select>
                       </td>
                       <td className='px-6 py-4 whitespace-nowrap'>
@@ -379,6 +369,50 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+
+              <div className='md:hidden space-y-4'>
+                {users.map((u) => (
+                  <div
+                    key={u._id}
+                    className='bg-white p-4 rounded-lg shadow-sm border border-gray-200'>
+                    <div className='flex justify-between items-start mb-2'>
+                      <div>
+                        <h3 className='font-bold text-gray-900'>{u.name}</h3>
+                        <p className='text-sm text-gray-500'>{u.email}</p>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 text-xs font-semibold rounded-full ${u.isActive === "ACTIVE" ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"}`}>
+                        {u.isActive}
+                      </span>
+                    </div>
+
+                    <div className='mt-2 flex items-center justify-between'>
+                      <select
+                        value={u.role}
+                        onChange={(e) =>
+                          handleRoleChange(u._id, e.target.value)
+                        }
+                        className='text-xs font-semibold rounded border-gray-300 text-gray-700 py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500'>
+                        <option value='USER'>USER</option>
+                        <option value='ADMIN'>ADMIN</option>
+                      </select>
+
+                      <div className='flex gap-3'>
+                        <button
+                          onClick={() => handleStatusChangeClick(u)}
+                          className='text-sm font-medium text-indigo-600 hover:text-indigo-800'>
+                          {u.isActive === "ACTIVE" ? "Block" : "Activate"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(u._id)}
+                          className='text-sm font-medium text-red-600 hover:text-red-800'>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}
@@ -402,7 +436,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <table className='min-w-full divide-y divide-gray-200'>
+              <table className='min-w-full divide-y divide-gray-200 hidden md:table'>
                 <thead className='bg-gray-50'>
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
@@ -453,6 +487,38 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
+
+              <div className='md:hidden space-y-4'>
+                {allNotes.map((n) => (
+                  <div
+                    key={n._id}
+                    className='bg-white p-4 rounded-lg shadow-sm border border-gray-200'>
+                    <div className='mb-2'>
+                      <h3 className='font-bold text-gray-900 mb-1'>
+                        {n.title}
+                      </h3>
+                      <p className='text-xs text-gray-500'>
+                        By {n.author?.name} ({n.author?.email})
+                      </p>
+                    </div>
+                    <p className='text-sm text-gray-600 line-clamp-3 mb-3'>
+                      {n.content}
+                    </p>
+                    <div className='flex justify-end gap-3'>
+                      <button
+                        onClick={() => openNoteModal(n)}
+                        className='text-sm font-medium text-indigo-600 hover:text-indigo-800'>
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteNoteClick(n._id)}
+                        className='text-sm font-medium text-red-600 hover:text-red-800'>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
               {allNotes.length === 0 && (
                 <div className='text-center py-10 text-gray-500'>
                   No notes found matching your filters.
@@ -497,7 +563,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Delete User Confirmation Modal */}
       <Modal
         isOpen={!!userToDelete}
         onClose={() => setUserToDelete(null)}
@@ -522,7 +587,6 @@ const AdminDashboard = () => {
         </div>
       </Modal>
 
-      {/* Confirm User Status Change Modal */}
       <Modal
         isOpen={!!userToToggleStatus}
         onClose={() => setUserToToggleStatus(null)}
@@ -550,7 +614,6 @@ const AdminDashboard = () => {
         </div>
       </Modal>
 
-      {/* Edit Note Modal */}
       <Modal
         isOpen={isNoteModalOpen}
         onClose={closeNoteModal}
@@ -597,7 +660,6 @@ const AdminDashboard = () => {
         </form>
       </Modal>
 
-      {/* Delete Note Confirmation Modal */}
       <Modal
         isOpen={!!noteToDelete}
         onClose={() => setNoteToDelete(null)}

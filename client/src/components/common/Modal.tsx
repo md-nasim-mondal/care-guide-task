@@ -34,7 +34,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 
   return createPortal(
     <div
-      className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity'
+      className='fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm transition-opacity'
       onClick={onClose}>
       <div
         ref={modalRef}
