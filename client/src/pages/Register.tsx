@@ -136,6 +136,11 @@ const Register = () => {
                 Sign in
               </Link>
             </p>
+            <p className='text-xs text-center text-gray-400 mt-4 bg-yellow-50 p-2 rounded border border-yellow-100'>
+              Note: 2-Step Verification is currently <strong>DISABLED</strong>{" "}
+              for easier testing. You will be logged in immediately after
+              registration.
+            </p>
           </div>
         </form>
       </div>

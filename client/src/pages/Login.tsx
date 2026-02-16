@@ -166,6 +166,10 @@ const Login = () => {
               </div>
               <p className='text-xs text-center text-gray-400 mt-4'>
                 Note: Password is "password123" for both accounts.
+                <br />
+                <span className='text-yellow-600 font-medium'>
+                  2-Step Verification is DISABLED for testing purposes.
+                </span>
               </p>
             </div>
           </div>

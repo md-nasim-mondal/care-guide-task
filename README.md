@@ -7,6 +7,7 @@ A robust MERN stack application featuring role-based access control, secure auth
 ### Core Functionality
 
 - **Authentication**: Secure JWT-based auth (Access/Refresh Tokens) with Bcrypt password hashing.
+  - _Note: 2-Step Verification is currently **DISABLED** for easier testing purposes._
 - **Role-Based Access Control (RBAC)**:
   - **User**: Manage own notes, create posts, view community feed.
   - **Admin**: Manage all users, all notes, and all community posts.
