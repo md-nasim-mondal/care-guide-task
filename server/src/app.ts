@@ -23,7 +23,7 @@ app.use("/api/v1", router);
 
 app.get("/", (req: Request, res: Response) => {
   res.status(200).json({
-    message: "Welcome to Parcel Delivery Management System Server!",
+    message: "Welcome to Care Guide Note App Server!",
   });
 });
 
