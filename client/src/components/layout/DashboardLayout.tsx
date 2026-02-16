@@ -7,7 +7,7 @@ const DashboardLayout = () => {
 
   return (
     <div className='flex min-h-screen bg-gray-100'>
-      <div className='md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b z-30 px-4 flex items-center shadow-sm'>
+      <div className='lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b z-30 px-4 flex items-center shadow-sm'>
         <button
           onClick={() => setSidebarOpen(true)}
           className='p-2 rounded-md hover:bg-gray-100 focus:outline-none'>
@@ -30,7 +30,7 @@ const DashboardLayout = () => {
 
       <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className='flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 min-h-screen transition-all duration-300'>
+      <main className='flex-1 lg:ml-64 p-4 md:p-8 pt-20 md:pt-28 lg:pt-8 min-h-screen'>
         <Outlet />
       </main>
     </div>

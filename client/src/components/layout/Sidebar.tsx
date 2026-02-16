@@ -45,7 +45,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -54,14 +54,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       <div
         className={`w-64 bg-gray-800 text-white min-h-screen flex flex-col fixed left-0 top-0 overflow-y-auto z-40 transition-transform duration-300 transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}>
+        } lg:translate-x-0`}>
         <div className='h-16 flex items-center justify-center border-b border-gray-700 bg-gray-900'>
           <Link to='/' className='text-2xl font-bold text-white tracking-wide'>
             NoteApp
           </Link>
           <button
             onClick={onClose}
-            className='md:hidden absolute right-4 text-gray-400 hover:text-white'>
+            className='lg:hidden absolute right-4 text-gray-400 hover:text-white'>
             <svg
               className='w-6 h-6'
               fill='none'

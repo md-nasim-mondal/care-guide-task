@@ -1,5 +1,5 @@
 import { createBrowserRouter } from "react-router";
-import HomePage from "../pages/Home";
+import HomePage from "../pages/HomePage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
@@ -52,7 +52,6 @@ export const router = createBrowserRouter([
         index: true,
         element: <Dashboard />,
       },
-      // Other nested dashboard routes can act here
     ],
   },
   {

@@ -38,7 +38,7 @@ export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       onClick={onClose}>
       <div
         ref={modalRef}
-        className='bg-white rounded-lg shadow-xl w-full max-w-md mx-auto overflow-hidden animate-fade-in-up'
+        className='bg-white rounded-lg shadow-xl w-full max-w-md mx-auto animate-fade-in-up'
         role='dialog'
         aria-modal='true'
         onClick={(e) => e.stopPropagation()}>

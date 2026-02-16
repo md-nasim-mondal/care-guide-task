@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleMouseEnter = () => {
+    if (window.innerWidth >= 1024) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      setIsUserMenuOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.innerWidth >= 1024) {
+      timeoutRef.current = setTimeout(() => {
+        setIsUserMenuOpen(false);
+      }, 300);
+    }
   };
 
   return (
@@ -22,42 +41,49 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className='hidden md:flex items-center'>
+          <div className='hidden lg:flex items-center'>
             {user ? (
-              <div className='relative ml-3 group'>
+              <div
+                className='relative ml-3'
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}>
                 <button
                   type='button'
                   className='flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                   <span className='sr-only'>Open user menu</span>
                   <div className='h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold'>
-                    {user.name?.slice(0, 2).toUpperCase()}
+                    {user?.name?.slice(0, 2).toUpperCase()}
                   </div>
                 </button>
-                <div className='absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden group-hover:block'>
-                  <div className='px-4 py-3 border-b'>
-                    <p className='text-sm text-gray-900 font-semibold'>
-                      {user.name}
-                    </p>
-                    <p className='text-xs text-indigo-500 font-medium uppercase'>
-                      {user.role}
-                    </p>
+                {isUserMenuOpen && (
+                  <div
+                    onMouseEnter={handleMouseEnter}
+                    className='absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'>
+                    <div className='px-4 py-3 border-b'>
+                      <p className='text-sm text-gray-900 font-semibold'>
+                        {user?.name}
+                      </p>
+                      <p className='text-xs text-indigo-500 font-medium uppercase'>
+                        {user?.role}
+                      </p>
+                    </div>
+                    <Link
+                      to={
+                        user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
+                          ? "/admin"
+                          : "/dashboard"
+                      }
+                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
+                      Logout
+                    </button>
                   </div>
-                  <Link
-                    to={
-                      user.role === "ADMIN" || user.role === "SUPER_ADMIN"
-                        ? "/admin"
-                        : "/dashboard"
-                    }
-                    className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'>
-                    Logout
-                  </button>
-                </div>
+                )}
               </div>
             ) : (
               <div className='flex gap-4'>
@@ -75,7 +101,7 @@ const Navbar = () => {
             )}
           </div>
 
-          <div className='md:hidden flex items-center'>
+          <div className='lg:hidden flex items-center'>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className='inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500'>
@@ -117,7 +143,7 @@ const Navbar = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className='md:hidden'>
+        <div className='lg:hidden'>
           <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t'>
             {user ? (
               <>
@@ -125,22 +151,22 @@ const Navbar = () => {
                   <div className='flex items-center'>
                     <div className='shrink-0'>
                       <div className='h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold'>
-                        {user.name?.slice(0, 2).toUpperCase()}
+                        {user?.name?.slice(0, 2).toUpperCase()}
                       </div>
                     </div>
                     <div className='ml-3'>
                       <div className='text-base font-medium leading-none text-gray-800'>
-                        {user.name}
+                        {user?.name}
                       </div>
                       <div className='text-sm font-medium leading-none text-gray-500 mt-1'>
-                        {user.email}
+                        {user?.email}
                       </div>
                     </div>
                   </div>
                 </div>
                 <Link
                   to={
-                    user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+                    user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
                       ? "/admin"
                       : "/dashboard"
                   }

@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import api from "../api/api";
 import { LoadingPage } from "../components/common/LoadingPage";
 import { Pagination } from "../components/common/Pagination";
+import Footer from "../components/layout/Footer";
 
 interface Note {
   _id: string;
@@ -51,10 +52,10 @@ const HomePage = () => {
   if (authLoading) return <LoadingPage />;
 
   return (
-    <div className='min-h-screen bg-linear-to-br from-indigo-100 via-purple-50 to-indigo-100'>
-      <div className='container mx-auto px-4 py-8'>
+    <div className='min-h-screen flex flex-col pt-16 bg-linear-to-br from-indigo-100 via-purple-50 to-indigo-100'>
+      <div className='container mx-auto px-4 py-8 grow'>
         {!user ? (
-          <div className='flex flex-col items-center justify-center min-h-[80vh] text-center'>
+          <div className='flex flex-col items-center justify-center min-h-[60vh] text-center'>
             <h1 className='text-4xl md:text-6xl font-extrabold text-indigo-600 mb-6 tracking-tight drop-shadow-sm'>
               Welcome to NoteApp
             </h1>
@@ -76,7 +77,7 @@ const HomePage = () => {
             </div>
           </div>
         ) : (
-          <div>
+          <div className='h-full flex flex-col'>
             <h2 className='text-3xl font-bold mb-8 text-gray-800 border-b pb-4'>
               Your Notes
             </h2>
@@ -85,7 +86,7 @@ const HomePage = () => {
                 <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
               </div>
             ) : notes.length === 0 ? (
-              <div className='text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl border border-dashed border-gray-300 shadow-sm'>
+              <div className='grow flex flex-col justify-center items-center text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl border border-dashed border-gray-300 shadow-sm'>
                 <p className='text-gray-500 mb-6 text-lg'>
                   You don't have any notes yet.
                 </p>
@@ -96,20 +97,22 @@ const HomePage = () => {
                 </Link>
               </div>
             ) : (
-              <>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              <div className='grow flex flex-col'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
                   {notes.map((note) => (
                     <div
-                      key={note._id}
-                      onClick={() => navigate(`/notes/${note._id}`)}
-                      className='bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer group hover:-translate-y-1'>
-                      <h3 className='text-xl font-bold mb-3 text-gray-800 group-hover:text-indigo-600 transition-colors'>
-                        {note.title}
-                      </h3>
-                      <p className='text-gray-600 line-clamp-3 mb-4 leading-relaxed'>
-                        {note.content}
-                      </p>
-                      <div className='flex justify-between items-center text-xs text-gray-400 font-medium'>
+                      key={note?._id}
+                      onClick={() => navigate(`/notes/${note?._id}`)}
+                      className='bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 cursor-pointer group hover:-translate-y-1 h-full flex flex-col justify-between'>
+                      <div>
+                        <h3 className='text-xl font-bold mb-3 text-gray-800 group-hover:text-indigo-600 transition-colors'>
+                          {note?.title}
+                        </h3>
+                        <p className='text-gray-600 line-clamp-3 mb-4 leading-relaxed'>
+                          {note?.content}
+                        </p>
+                      </div>
+                      <div className='flex justify-between items-center text-xs text-gray-400 font-medium mt-auto pt-4 border-t border-gray-50'>
                         <span>
                           {new Date(note.createdAt).toLocaleDateString(
                             undefined,
@@ -124,18 +127,19 @@ const HomePage = () => {
                     </div>
                   ))}
                 </div>
-                <div className='mt-8 flex justify-center'>
+                <div className='mt-auto flex justify-center pb-4'>
                   <Pagination
                     currentPage={page}
                     totalPages={totalPages}
                     onPageChange={setPage}
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
